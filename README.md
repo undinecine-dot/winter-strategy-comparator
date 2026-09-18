@@ -16,7 +16,7 @@ The application stores entries in the current browser's local storage. It has no
 
 ## Use
 
-1. Enter the actual company position after Year 1 autumn.
+1. If only Year 1 Winter is complete, choose **Use known Winter as illustration**. This skips the intervening seasons and must not be treated as the real Year 2 opening position. Replace it with actual balances after Year 1 autumn when available.
 2. Replace the draft plans with two proposed Year 2 winter decisions.
 3. Enter possible trainer sales allocations for low, expected, and high scenarios.
 4. Compare profit, cash, warnings, and the lower-sales outcome.
