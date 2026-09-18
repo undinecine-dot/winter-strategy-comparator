@@ -117,15 +117,17 @@ function render(){
   const ratesOpen = root.querySelector('details')?.open || false;
   const fixture=winterCheck();
   const complete=openingComplete(state.opening);
+  const winterOnly=state.opening.basis==='winter-example';
   const allocA=state.allocations[state.scenario]?.[0] ?? 0,allocB=state.allocations[state.scenario]?.[1] ?? 0;
   const ra=calculate(state,0,allocA),rb=calculate(state,1,allocB);
   const ta=threshold(state,0),tb=threshold(state,1),cross=crossover(state);
   root.innerHTML=`<header class="topbar"><div class="topinner"><div class="brand"><span class="mark">W</span><div><h1>Winter Strategy Comparator</h1><div class="topmeta">Pork &amp; Garlic Ice Cream Co. · Year 2 winter</div></div></div><div class="topmeta">Your entries stay in this browser<br>Year 1 prices are estimates for Year 2</div></div></header>
   <main class="shell">
-    <div class="intro"><div><h2>Choose a winter plan with the cash consequences in view</h2><p>Enter your position after Year 1 autumn, change Plans A and B, then compare possible trainer sales allocations.</p></div><span class="tag ${complete?'ok':'warn'}">${complete?'Opening position entered':'Opening position incomplete'}</span></div>
+    <div class="intro"><div><h2>Choose a winter plan with the cash consequences in view</h2><p>Use a Winter-only illustration now, or enter your real position after Year 1 autumn when it becomes available. Then compare Plans A and B.</p></div><span class="tag ${complete&&!winterOnly?'ok':'warn'}">${winterOnly?'Winter-only illustration':complete?'Actual opening entered':'Opening position incomplete'}</span></div>
     <div class="topgrid">
-      <section class="card"><div class="cardhead"><div><div class="eyebrow">1 · Starting point</div><h2>After Year 1 autumn</h2><p>Use your final Year 1 accounts. Winter alone is only a calculation test.</p></div></div>
-        <div class="fields">${field('Closing cash · Sh','opening.cash',state.opening.cash,{placeholder:'Required'})}${field('Year 1 annual profit · Sh','opening.annualProfit',state.opening.annualProfit,{placeholder:'Required'})}${field('Tax loss carried · Sh','opening.taxLoss',state.opening.taxLoss,{min:0,placeholder:'Enter 0 if none'})}</div>
+      <section class="card"><div class="cardhead"><div><div class="eyebrow">1 · Starting point</div><h2>${winterOnly?'Winter-only illustration':'After Year 1 autumn'}</h2><p>${winterOnly?'This uses the known Year 1 Winter closing position only. Three intervening seasons are unknown, so these Year 2 projections are illustrations.':'Use final Year 1 accounts when available. If your class has only completed Winter, use the illustration button below.'}</p></div></div>
+        <div class="opening-actions"><button class="textbtn" data-use-winter>Use known Winter as illustration</button>${winterOnly?'<button class="textbtn" data-use-actual>Switch to actual Year 1 end position</button>':''}</div>
+        <div class="fields">${field(winterOnly?'Winter closing cash · Sh':'Autumn closing cash · Sh','opening.cash',state.opening.cash,{placeholder:'Required'})}${field(winterOnly?'Profit through Winter · Sh':'Year 1 annual profit · Sh','opening.annualProfit',state.opening.annualProfit,{placeholder:'Required'})}${field('Tax loss carried · Sh','opening.taxLoss',state.opening.taxLoss,{min:0,placeholder:'Enter 0 if none'})}</div>
         <div class="minihead"><h3>Machines still owned</h3><button class="textbtn" data-add-machine>Add machine</button></div>${machineOpening()}
         <div class="minihead"><h3>Unpaid loans</h3><button class="textbtn" data-add-loan>Add loan</button></div>${loanOpening()}
         <p class="inline-note">For each loan, enter the principal due this winter. Interest is calculated on its opening debt.</p>
@@ -151,7 +153,7 @@ function render(){
     <section class="section card"><details><summary>Year 2 assumptions · edit when the professor gives new rules</summary><p class="secondary">These are Year 1 values used as provisional estimates. The forecast is entered separately above and never generates sales automatically.</p>${rateFields()}</details></section>
     <footer class="footer">Browser-only working copy · No sign-in or database · Verify final decisions against the trainer’s Year 2 rules</footer>
   </main>`;
-  if (!complete) root.querySelector('#results').innerHTML = `<div class="sectionhead"><div><div class="eyebrow">4 · Financial consequences</div><h2>Complete the Year 1 autumn opening position</h2><p>Enter cash, annual profit and carried tax loss above. Add the machines and unpaid loans you still have. Projections will appear here after the starting position is complete.</p></div></div><div class="card"><p class="secondary">The six Year 1 winter figures above are a calculation test. They are not the Year 2 opening balances.</p></div>`;
+  if (!complete) root.querySelector('#results').innerHTML = `<div class="sectionhead"><div><div class="eyebrow">4 · Financial consequences</div><h2>Choose an opening position</h2><p>Use the Winter illustration above if Autumn is not yet available, or enter the actual Year 1 end position when you have it.</p></div></div><div class="card"><p class="secondary">The six Winter check figures alone do not establish the real Year 2 opening balances.</p></div>`;
   if (ratesOpen) root.querySelector('details').open = true;
 }
 
@@ -164,6 +166,8 @@ root.addEventListener('input', e=>{if(e.target.id==='recommendation'){state.reco
 root.addEventListener('click', e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.hasAttribute('data-add-machine'))state.opening.machines.push({id:`M${state.opening.machines.length+1}`,type:5,life:4,maintenance:'',depreciation:''});
+  else if(b.hasAttribute('data-use-winter'))state.opening={basis:'winter-example',cash:76796,annualProfit:1296,taxLoss:0,machines:[{id:'Winter M5',type:5,life:7,maintenance:1300,depreciation:3500}],loans:[]};
+  else if(b.hasAttribute('data-use-actual'))state.opening={basis:'actual',cash:'',annualProfit:'',taxLoss:'',machines:[],loans:[]};
   else if(b.hasAttribute('data-remove-machine'))state.opening.machines.splice(Number(b.dataset.removeMachine),1);
   else if(b.hasAttribute('data-add-loan'))state.opening.loans.push({id:`L${state.opening.loans.length+1}`,principal:'',payment:'',rate:''});
   else if(b.hasAttribute('data-remove-loan'))state.opening.loans.splice(Number(b.dataset.removeLoan),1);

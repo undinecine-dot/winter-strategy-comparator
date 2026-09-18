@@ -29,7 +29,7 @@ export const draftPlan = (name, premise) => {
 };
 export const defaultState = () => ({
   rates: structuredClone(defaultRates),
-  opening: { cash: '', annualProfit: '', taxLoss: '', machines: [], loans: [] },
+  opening: { basis: 'actual', cash: '', annualProfit: '', taxLoss: '', machines: [], loans: [] },
   plans: [draftPlan('Plan A', 'D'), draftPlan('Plan B', 'E')],
   allocations: [[20000, 20000], [30000, 30000], [40000, 40000]],
   scenario: 1, recommendation: '',
@@ -57,8 +57,8 @@ export function openingComplete(opening) {
 export function calculate(state, planIndex, allocation) {
   const plan = state.plans[planIndex], r = state.rates, opening = state.opening;
   const problems = [], notices = [];
-  if (!openingComplete(opening)) problems.push('Enter Year 1 autumn cash, annual profit and tax loss first.');
-  if (num(opening.cash) < 0) problems.push('Year 1 autumn closing cash cannot be negative.');
+  if (!openingComplete(opening)) problems.push('Enter an opening cash, profit reference and tax loss first.');
+  if (num(opening.cash) < 0) problems.push('Opening cash cannot be negative.');
   if (num(opening.taxLoss) < 0) problems.push('Carried tax loss cannot be negative.');
   const milkTons = num(plan.milkTons), request = num(plan.request), market = num(plan.market), sales = num(allocation);
   if (milkTons < num(r.minMilk)) problems.push(`Milk must be at least ${r.minMilk} ton.`);
@@ -150,6 +150,7 @@ export function calculate(state, planIndex, allocation) {
   if (totalProduction > sales) notices.push(`${(totalProduction - sales).toLocaleString()} unsold ice creams spoil.`);
   if (milkCapacity > totalProduction) notices.push(`${(milkCapacity - totalProduction).toLocaleString()} ice creams of unused milk capacity spoil.`);
   if (r.forecast === '' || r.forecast == null) notices.push('Year 2 forecast is not entered; allocation remains your scenario assumption.');
+  if (opening.basis === 'winter-example') notices.push('Winter-only illustration: Spring, Summer and Autumn are not included. Replace this opening position when Year 1 is complete.');
   return { problems, notices, valid: problems.length === 0, allocation: sales, entries,
     production: totalProduction, milkCapacity, unusedMilk: milkCapacity - totalProduction, unsold: totalProduction - sales,
     pnl: { revenue, milk, maintenance, depreciation, gross, transport, market: marketCost, bonus, salary, rent, interest, beforeTax, openingLoss: num(opening.taxLoss), lossUsed, taxable, tax, net, closingLoss },
